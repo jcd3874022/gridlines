@@ -8,47 +8,67 @@ h1{font-size:20px;margin:0;letter-spacing:2px}.sub{color:var(--dim);font-size:12
 .wk button{background:var(--card);border:1px solid var(--line);color:var(--txt);padding:6px 12px;border-radius:16px;font-size:13px}
 .wk button.on{background:var(--acc);color:#04121d;border-color:var(--acc);font-weight:600}
 .g{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
-.hd{display:flex;justify-content:space-between;align-items:baseline}
-.match{font-weight:700;font-size:16px}.score{font-size:15px;color:var(--acc);font-weight:600}
-.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;font-size:13px}
+.kick{color:var(--dim);font-size:12px;margin-bottom:8px}
+.teams{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tm{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16px}
+.tm img{width:34px;height:34px}
+.proj{text-align:center}
+.proj .lbl{font-size:10px;color:var(--dim);letter-spacing:1px}
+.proj .sc{font-size:20px;color:var(--acc);font-weight:700}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:13px}
 .pill{background:#0e1620;border:1px solid var(--line);border-radius:8px;padding:4px 8px}
 .pill b{color:var(--acc)}.edge{color:var(--warn);font-weight:600}
 .flag{color:var(--bad);font-size:12px;margin-top:6px}
+.brk{margin-top:8px;font-size:13px;color:var(--good)}
+.brk b{color:var(--good)}
 .fun{background:#101a12;border:1px solid #1e3a26;border-radius:12px;padding:12px;margin-bottom:12px;font-size:13px}
 .fun b{color:var(--good)}
 .meta{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:18px;font-size:12px;color:var(--dim)}
 .meta b{color:var(--txt)}h2{font-size:15px;color:var(--dim);margin:18px 0 8px;letter-spacing:1px}
 </style></head><body>
 <h1>GRIDLINES</h1>
-<div class="sub">Weekly NFL game model &mdash; simulated scores, market comparison, weather &amp; travel flags, scheme-funnel plays. Research, not betting advice.</div>
+<div class="sub">Weekly NFL game model &mdash; 14-factor Monte Carlo. Research, not betting advice.</div>
 <div class="wk" id="weeks"></div>
 <div id="out">Loading&hellip;</div>
 <div id="funnels"></div>
 <div class="meta" id="meta"></div>
 <script>
 const API='https://ekmuzafyqlbqttmfxsgw.supabase.co/functions/v1/ff-gridlines';
+const LOGO=a=>{const m={WAS:'wsh',JAX:'jax'};return 'https://a.espncdn.com/i/teamlogos/nfl/500/'+(m[a]||a.toLowerCase())+'.png'};
 const wkBar=document.getElementById('weeks');
 for(let w=1;w<=18;w++){const b=document.createElement('button');b.textContent='Wk '+w;b.onclick=()=>load(w,b);wkBar.appendChild(b);}
 function pct(x){return x==null?'-':Number(x).toFixed(0)+'%'}
+function dayOf(d){try{return new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'long', month:'short', day:'numeric'})}catch(e){return d}}
 async function load(w,btn){
   document.querySelectorAll('.wk button').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');else wkBar.children[w-1].classList.add('on');
   const out=document.getElementById('out');out.textContent='Simulating\u2026';
   try{
     const r=await fetch(API+'?week='+w);const d=await r.json();
-    if(!d.games||!d.games.length){out.innerHTML='<div class="g">No lines captured for week '+w+' yet \u2014 the card publishes once market prices land.</div>';document.getElementById('funnels').innerHTML='';document.getElementById('meta').innerHTML='';return}
+    if(!d.games||!d.games.length){out.innerHTML='<div class="g">No lines captured for week '+w+' yet \u2014 cards publish when market prices land.</div>';document.getElementById('funnels').innerHTML='';document.getElementById('meta').innerHTML='';return}
     const wx=Object.fromEntries((d.weather||[]).map(x=>[x.site,x]));
     const tv=Object.fromEntries((d.travel_flags||[]).map(x=>[x.team,x]));
+    const mk=Object.fromEntries((d.market||[]).map(x=>[x.home+x.away,x]));
+    const sc=Object.fromEntries((d.schedule||[]).map(x=>[x.home+x.away,x]));
+    const bk=Object.fromEntries((d.breakouts||[]).map(x=>[x.home+x.away,x]));
     out.innerHTML=d.games.map(g=>{
-      const w1=wx[g.home];const t=tv[g.away];
+      const w1=wx[g.home];const t=tv[g.away];const m=mk[g.home+g.away]||{};const s=sc[g.home+g.away]||{};const b=bk[g.home+g.away];
       const fav=g.home_ml_pct>=50?g.home:g.away;const favp=g.home_ml_pct>=50?g.home_ml_pct:100-g.home_ml_pct;
-      return `<div class="g"><div class="hd"><span class="match">${g.away} @ ${g.home}</span><span class="score">${g.sim_away_pts}\u2013${g.sim_home_pts}</span></div>
+      const when=[s.game_date?dayOf(s.game_date):null, m.kick].filter(Boolean).join(' \u00b7 ');
+      return `<div class="g">
+      ${when?`<div class="kick">${when}</div>`:''}
+      <div class="teams">
+        <span class="tm"><img src="${LOGO(g.away)}" alt="${g.away}" onerror="this.style.display='none'">${g.away}</span>
+        <span class="proj"><div class="lbl">PROJ FINAL</div><div class="sc">${g.sim_away_pts}\u2013${g.sim_home_pts}</div></span>
+        <span class="tm">${g.home}<img src="${LOGO(g.home)}" alt="${g.home}" onerror="this.style.display='none'"></span>
+      </div>
       <div class="row">
         <span class="pill">Win: <b>${fav} ${pct(favp)}</b></span>
-        <span class="pill">${g.home} cover ${g.book_spread>0?'+':''}${g.book_spread}: <b>${pct(g.home_cover_pct)}</b></span>
-        <span class="pill">Over ${g.book_total}: <b>${pct(g.over_pct)}</b></span>
+        <span class="pill">${g.home} ${g.book_spread>0?'+':''}${g.book_spread}: <b>${pct(g.home_cover_pct)}</b></span>
+        <span class="pill">O ${g.book_total}: <b>${pct(g.over_pct)}</b></span>
         ${g.edge_note?`<span class="pill edge">${g.edge_note}</span>`:''}
       </div>
+      ${b?`<div class="brk">\u2605 Breakout watch: <b>${b.player}</b> (${b.pos}, ${b.team}) \u2014 boom ${(100*b.p_boom).toFixed(0)}%</div>`:''}
       ${w1&&w1.note?`<div class="flag">Weather: ${w1.note} (${w1.game_tmax}\u00b0F, ${w1.wind_mph}mph, ${w1.precip_mm}mm)</div>`:''}
       ${t?`<div class="flag">Travel: ${t.team} ${t.miles}mi ${t.direction}, ${Math.abs(t.tz_crossed)} zones (\u2212${t.penalty_pts})</div>`:''}
       </div>`}).join('');
@@ -59,4 +79,4 @@ async function load(w,btn){
   }catch(e){out.innerHTML='<div class="g" style="color:var(--bad)">Load failed: '+e+'</div>'}
 }
 load(1);
-</script></body></html>\n<!-- build nudge -->
+</script></body></html>
