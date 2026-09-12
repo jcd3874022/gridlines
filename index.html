@@ -73,7 +73,9 @@ async function load(w,btn){
       ${t?`<div class="flag">Travel: ${t.team} ${t.miles}mi ${t.direction}, ${Math.abs(t.tz_crossed)} zones (\u2212${t.penalty_pts})</div>`:''}
       </div>`}).join('');
     const f=d.funnel_plays||[];
-    document.getElementById('funnels').innerHTML=f.length?('<h2>FUNNEL PLAYS \u2014 scheme overflow</h2>'+f.map(x=>`<div class="fun"><b>${x.beneficiary}</b> (${x.ben_pos}, ${x.nfl_team} vs ${x.opp}) <b>+${x.boost_pts}</b><br><span style="color:var(--dim)">${x.driver}</span></div>`).join('')):'';
+    const kd=d.kdef_boom||[];
+    if(kd.length){window.__kd='<h2>K / D-ST BOOM \u2014 stream radar</h2>'+kd.slice(0,6).map(x=>`<div class="fun"><b>${x.unit}</b> (${x.kind}, vs ${x.opp}) boom <b>${(100*x.boom).toFixed(0)}%</b><br><span style="color:var(--dim)">${x.factors}</span></div>`).join('')}else{window.__kd=''}
+    document.getElementById('funnels').innerHTML=f.length?('<h2>FUNNEL PLAYS \u2014 scheme overflow</h2>'+f.map(x=>`<div class="fun"><b>${x.beneficiary}</b> (${x.ben_pos}, ${x.nfl_team} vs ${x.opp}) <b>+${x.boost_pts}</b><br><span style="color:var(--dim)">${x.driver}</span></div>`).join('')):''+(window.__kd||'');
     const p=d.provenance||{};
     document.getElementById('meta').innerHTML='<b>Method:</b> '+d.method+'<br><br>'+Object.entries(p).map(([k,v])=>'&bull; <b>'+k+':</b> '+v).join('<br>')+'<br><br>Generated '+d.generated_at;
   }catch(e){out.innerHTML='<div class="g" style="color:var(--bad)">Load failed: '+e+'</div>'}
