@@ -74,7 +74,7 @@ async function load(w,btn){
         <span class="pill">O ${g.book_total}: <b>${pct(g.over_pct)}</b></span>
         ${g.edge_note?`<span class="pill edge">${g.edge_note}</span>`:''}
       </div>
-      ${b?`<div class="brk">\u2605 Breakout watch: <b>${b.player}</b> (${b.pos}, ${b.team}) \u2014 boom ${(100*b.p_boom).toFixed(0)}%</div>`:''}
+      ${b?`<div class="brk">\u2605 Breakout watch: <b>${b.player}</b> (${b.pos}, ${b.team}) \u2014 boom ${(100*b.p_boom).toFixed(0)}%${b.channel?` \u00b7 <i>${b.channel}</i>`:''}</div>`:''}
       ${w1&&w1.note?`<div class="flag">Weather: ${w1.note} (${w1.game_tmax}\u00b0F, ${w1.wind_mph}mph, ${w1.precip_mm}mm)</div>`:''}
       ${t?`<div class="flag">Travel: ${t.team} ${t.miles}mi ${t.direction}, ${Math.abs(t.tz_crossed)} zones (\u2212${t.penalty_pts})</div>`:''}
       ${injLine(g.away,g.away_injury)}
