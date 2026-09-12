@@ -59,7 +59,7 @@ async function load(w,btn){
       ${when?`<div class="kick">${when}</div>`:''}
       <div class="teams">
         <span class="tm"><img src="${LOGO(g.away)}" alt="${g.away}" onerror="this.style.display='none'">${g.away}</span>
-        <span class="proj"><div class="lbl">PROJ FINAL</div><div class="sc">${g.sim_away_pts}\u2013${g.sim_home_pts}</div></span>
+        <span class="proj"><div class="lbl">PROJ FINAL</div><div class="sc">${g.away_final??Math.round(g.sim_away_pts)}\u2013${g.home_final??Math.round(g.sim_home_pts)}</div><div class="lbl" style="margin-top:2px">model \u03bc ${g.sim_away_pts}\u2013${g.sim_home_pts}</div></span>
         <span class="tm">${g.home}<img src="${LOGO(g.home)}" alt="${g.home}" onerror="this.style.display='none'"></span>
       </div>
       <div class="row">
