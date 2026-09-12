@@ -51,6 +51,12 @@ async function load(w,btn){
     const mk=Object.fromEntries((d.market||[]).map(x=>[x.home+x.away,x]));
     const sc=Object.fromEntries((d.schedule||[]).map(x=>[x.home+x.away,x]));
     const bk=Object.fromEntries((d.breakouts||[]).map(x=>[x.home+x.away,x]));
+    const injP={};((d.injuries&&d.injuries.by_player)||[]).forEach(x=>{(injP[x.team]=injP[x.team]||[]).push(x)});
+    const injLine=(tm,imp)=>{if(!imp||!imp.share_lost_raw)return '';
+      const ps=(injP[tm]||[]).sort((a,b)=>b.share_lost-a.share_lost).slice(0,3).map(x=>`${x.full_name} (${x.pos}, ${x.injury_status})`).join(', ');
+      if(!ps)return '';
+      const netTxt=imp.off_share_lost>0?`${(100*imp.off_share_lost).toFixed(1)}% above league-average load`:`${(100*Math.abs(imp.off_share_lost)).toFixed(1)}% below league-average load`;
+      return `<div class="flag">Injuries: ${tm} missing ${(100*imp.share_lost_raw).toFixed(1)}% of skill production \u2014 ${ps} <span style="color:var(--dim)">(${netTxt}; only the difference moves the number)</span></div>`};
     out.innerHTML=d.games.map(g=>{
       const w1=wx[g.home];const t=tv[g.away];const m=mk[g.home+g.away]||{};const s=sc[g.home+g.away]||{};const b=bk[g.home+g.away];
       const fav=g.home_ml_pct>=50?g.home:g.away;const favp=g.home_ml_pct>=50?g.home_ml_pct:100-g.home_ml_pct;
@@ -71,6 +77,8 @@ async function load(w,btn){
       ${b?`<div class="brk">\u2605 Breakout watch: <b>${b.player}</b> (${b.pos}, ${b.team}) \u2014 boom ${(100*b.p_boom).toFixed(0)}%</div>`:''}
       ${w1&&w1.note?`<div class="flag">Weather: ${w1.note} (${w1.game_tmax}\u00b0F, ${w1.wind_mph}mph, ${w1.precip_mm}mm)</div>`:''}
       ${t?`<div class="flag">Travel: ${t.team} ${t.miles}mi ${t.direction}, ${Math.abs(t.tz_crossed)} zones (\u2212${t.penalty_pts})</div>`:''}
+      ${injLine(g.away,g.away_injury)}
+      ${injLine(g.home,g.home_injury)}
       </div>`}).join('');
     const f=d.funnel_plays||[];
     const kd=d.kdef_boom||[];
