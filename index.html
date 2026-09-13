@@ -82,10 +82,12 @@ async function load(w,btn){
       ${injLine(g.away,g.away_injury)}
       ${injLine(g.home,g.home_injury)}
       </div>`}).join('');
+    const rc=d.role_changes||[];
+    window.__rc=rc.length?('<h2>ROLE CHANGE \u2014 inherited opportunity</h2>'+rc.slice(0,6).map(x=>`<div class="fun"><b>${x.player}</b> (${x.pos}, ${x.team}) \u2014 `+(x.basis==='role_change_no_baseline'?`<span style="color:var(--warn)">promotion detected, no prior-season baseline</span>`:`clears ${x.rel_threshold} at <b>${(100*x.p_boom_rel).toFixed(0)}%</b> \u00b7 proj ${x.proj_role}`)+`<br><span style="color:var(--dim)">${x.why}</span></div>`).join('')):'';
     const f=d.funnel_plays||[];
     const kd=d.kdef_boom||[];
     if(kd.length){window.__kd='<h2>K / D-ST BOOM \u2014 stream radar</h2>'+kd.slice(0,6).map(x=>`<div class="fun"><b>${x.unit}</b> (${x.kind}, vs ${x.opp}) boom <b>${(100*x.boom).toFixed(0)}%</b><br><span style="color:var(--dim)">${x.factors}</span></div>`).join('')}else{window.__kd=''}
-    document.getElementById('funnels').innerHTML=f.length?('<h2>FUNNEL PLAYS \u2014 scheme overflow</h2>'+f.map(x=>`<div class="fun"><b>${x.beneficiary}</b> (${x.ben_pos}, ${x.nfl_team} vs ${x.opp}) <b>+${x.boost_pts}</b><br><span style="color:var(--dim)">${x.driver}</span></div>`).join('')):''+(window.__kd||'');
+    document.getElementById('funnels').innerHTML=f.length?('<h2>FUNNEL PLAYS \u2014 scheme overflow</h2>'+f.map(x=>`<div class="fun"><b>${x.beneficiary}</b> (${x.ben_pos}, ${x.nfl_team} vs ${x.opp}) <b>+${x.boost_pts}</b><br><span style="color:var(--dim)">${x.driver}</span></div>`).join('')):'')+(window.__rc||'')+(window.__kd||'');
     const p=d.provenance||{};
     document.getElementById('meta').innerHTML='<b>Method:</b> '+d.method+'<br><br>'+Object.entries(p).map(([k,v])=>'&bull; <b>'+k+':</b> '+v).join('<br>')+'<br><br>Generated '+d.generated_at+(d.cached?' \u00b7 served from cache ('+d.cached_at+')':'');
   }catch(e){out.innerHTML='<div class="g" style="color:var(--bad)">Load failed: '+e+'</div>'}
