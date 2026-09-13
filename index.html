@@ -44,7 +44,9 @@ async function load(w,btn){
   if(btn)btn.classList.add('on');else wkBar.children[w-1].classList.add('on');
   const out=document.getElementById('out');out.textContent='Simulating\u2026';
   try{
-    const r=await fetch(API+'?week='+w);const d=await r.json();
+    let r=await fetch(API+'?week='+w);let d=await r.json();
+    if(d.error){r=await fetch(API+'?week='+w+'&fresh=1');d=await r.json();}
+    if(d.error){out.innerHTML='<div class="g" style="color:var(--bad)">Model error ('+(d.stage||'api')+'): '+d.error+'</div>';document.getElementById('funnels').innerHTML='';document.getElementById('meta').innerHTML='';return}
     if(!d.games||!d.games.length){out.innerHTML='<div class="g">No lines captured for week '+w+' yet \u2014 cards publish when market prices land.</div>';document.getElementById('funnels').innerHTML='';document.getElementById('meta').innerHTML='';return}
     const wx=Object.fromEntries((d.weather||[]).map(x=>[x.site,x]));
     const tv=Object.fromEntries((d.travel_flags||[]).map(x=>[x.team,x]));
@@ -85,7 +87,7 @@ async function load(w,btn){
     if(kd.length){window.__kd='<h2>K / D-ST BOOM \u2014 stream radar</h2>'+kd.slice(0,6).map(x=>`<div class="fun"><b>${x.unit}</b> (${x.kind}, vs ${x.opp}) boom <b>${(100*x.boom).toFixed(0)}%</b><br><span style="color:var(--dim)">${x.factors}</span></div>`).join('')}else{window.__kd=''}
     document.getElementById('funnels').innerHTML=f.length?('<h2>FUNNEL PLAYS \u2014 scheme overflow</h2>'+f.map(x=>`<div class="fun"><b>${x.beneficiary}</b> (${x.ben_pos}, ${x.nfl_team} vs ${x.opp}) <b>+${x.boost_pts}</b><br><span style="color:var(--dim)">${x.driver}</span></div>`).join('')):''+(window.__kd||'');
     const p=d.provenance||{};
-    document.getElementById('meta').innerHTML='<b>Method:</b> '+d.method+'<br><br>'+Object.entries(p).map(([k,v])=>'&bull; <b>'+k+':</b> '+v).join('<br>')+'<br><br>Generated '+d.generated_at;
+    document.getElementById('meta').innerHTML='<b>Method:</b> '+d.method+'<br><br>'+Object.entries(p).map(([k,v])=>'&bull; <b>'+k+':</b> '+v).join('<br>')+'<br><br>Generated '+d.generated_at+(d.cached?' \u00b7 served from cache ('+d.cached_at+')':'');
   }catch(e){out.innerHTML='<div class="g" style="color:var(--bad)">Load failed: '+e+'</div>'}
 }
 load(1);
